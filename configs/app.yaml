@@ -1,0 +1,22 @@
+app:
+  name: "VibeStorm"
+  version: "1.0.0"
+  env: "development"
+
+server:
+  port: "8080"
+  read_timeout: "10s"
+  write_timeout: "10s"
+  shutdown_timeout: "30s"
+
+database:
+  host: "localhost"
+  port: 3306
+  username: "root"
+  password: "password"
+  database: "vibe_storm"
+  ssl_mode: "false"
+
+logging:
+  level: "info"
+  format: "json"

@@ -1,0 +1,10 @@
+## DEVOPS
+
+### Guidelines for CONTAINERIZATION
+
+#### KUBERNETES
+
+- Use Helm charts for packaging and deploying applications
+- Implement resource requests and limits for all containers based on {{workload_characteristics}}
+- Use namespaces to organize and isolate resources
+
