@@ -9,15 +9,6 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Internet Gateway
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-igw"
-  }
-}
-
 # Public Subnets
 resource "aws_subnet" "public" {
   count                   = length(var.public_subnet_cidrs)
@@ -27,8 +18,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-public-${count.index + 1}"
-    Tier = "Public"
+    Name = "${var.project_name}-${var.environment}-public-${var.availability_zones[count.index]}"
   }
 }
 
@@ -40,11 +30,18 @@ resource "aws_subnet" "private" {
   availability_zone = var.availability_zones[count.index]
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-private-${count.index + 1}"
-    Tier = "Private"
+    Name = "${var.project_name}-${var.environment}-private-${var.availability_zones[count.index]}"
   }
 }
 
+# Internet Gateway
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-igw"
+  }
+}
 
 # Public Route Table
 resource "aws_route_table" "public" {
@@ -67,6 +64,20 @@ resource "aws_route_table" "private" {
 
   tags = {
     Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"
+  }
+}
+
+# S3 Gateway Endpoint
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = aws_vpc.main.id
+  service_name = "com.amazonaws.${var.aws_region}.s3"
+  route_table_ids = [
+    aws_route_table.public.id,
+    aws_route_table.private[0].id
+  ]
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-s3-endpoint"
   }
 }
 

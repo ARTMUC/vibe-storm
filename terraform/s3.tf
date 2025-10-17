@@ -33,6 +33,30 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
   }
 }
 
+# S3 Bucket Lifecycle Configuration
+resource "aws_s3_bucket_lifecycle_configuration" "main" {
+  bucket = aws_s3_bucket.main.id
+
+  rule {
+    id     = "transition-to-ia"
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 60
+      storage_class = "GLACIER"
+    }
+
+    expiration {
+      days = 365
+    }
+  }
+}
+
 # S3 VPC Endpoint
 resource "aws_vpc_endpoint" "s3" {
   vpc_id       = aws_vpc.main.id

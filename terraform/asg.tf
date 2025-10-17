@@ -12,8 +12,8 @@ resource "aws_autoscaling_group" "main" {
   target_group_arns = [aws_lb_target_group.main.arn]
 
   min_size = 1
-  max_size = 3
-  desired_capacity = 2
+  max_size = 2
+  desired_capacity = 1
 
   health_check_type = "ELB"
   health_check_grace_period = 300
@@ -22,25 +22,6 @@ resource "aws_autoscaling_group" "main" {
     key                 = "Name"
     value               = "${var.project_name}-${var.environment}-app"
     propagate_at_launch = true
-  }
-
-  lifecycle {
-    ignore_changes = [desired_capacity]
-  }
-
-  tags = [
-    {
-      key                 = "Environment"
-      value               = var.environment
-      propagate_at_launch = true
-    },
-    {
-      key                 = "Project"
-      value               = var.project_name
-      propagate_at_launch = true
-    }
-  ]
-}
 
 # Auto Scaling Policies
 resource "aws_autoscaling_policy" "scale_up" {

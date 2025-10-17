@@ -95,3 +95,8 @@ variable "bastion_instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "github_repo" {
+  description = "GitHub repository in the format owner/repo"
+  type        = string
+}

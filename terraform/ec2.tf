@@ -10,6 +10,9 @@ resource "aws_launch_template" "app" {
   image_id      = "ami-0c02fb55956c7d316" # Amazon Linux 2 AMI (change as needed for your region)
   instance_type = var.instance_type
   key_name      = aws_key_pair.app.key_name
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_profile.name
+  }
 
   vpc_security_group_ids = [aws_security_group.app.id]
 

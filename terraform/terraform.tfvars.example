@@ -34,3 +34,6 @@ domain_name        = "app.example.com"
 
 # S3 Configuration
 s3_bucket_name = "your-unique-bucket-name"
+
+# GitHub Configuration
+github_repo = "your-github-username/your-repo-name"

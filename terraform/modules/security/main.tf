@@ -2,7 +2,7 @@
 resource "aws_security_group" "bastion" {
   name        = "${var.project_name}-${var.environment}-bastion-sg"
   description = "Security group for bastion host"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
 
   # SSH access from anywhere (should be restricted in production)
   ingress {
@@ -29,14 +29,14 @@ resource "aws_security_group" "bastion" {
 resource "aws_security_group" "app" {
   name        = "${var.project_name}-${var.environment}-app-sg"
   description = "Security group for application servers"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
 
   # HTTP access from ALB
   ingress {
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+    security_groups = [var.alb_security_group_id]
   }
 
   # HTTPS access from ALB
@@ -44,7 +44,7 @@ resource "aws_security_group" "app" {
     from_port       = 443
     to_port         = 443
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+    security_groups = [var.alb_security_group_id]
   }
 
   # SSH access from bastion only
@@ -88,7 +88,7 @@ resource "aws_security_group" "app" {
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-${var.environment}-rds-sg"
   description = "Security group for RDS MySQL instance"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
 
   # MySQL access from application servers
   ingress {
@@ -123,7 +123,7 @@ resource "aws_security_group" "rds" {
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-${var.environment}-alb-sg"
   description = "Security group for Application Load Balancer"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
 
   # HTTP access from anywhere
   ingress {
@@ -151,24 +151,5 @@ resource "aws_security_group" "alb" {
 
   tags = {
     Name = "${var.project_name}-${var.environment}-alb-sg"
-  }
-}
-
-# Security Group for S3 Endpoint
-resource "aws_security_group" "s3_endpoint" {
-  name        = "${var.project_name}-${var.environment}-s3-endpoint-sg"
-  description = "Security group for S3 VPC endpoint"
-  vpc_id      = aws_vpc.main.id
-
-  # S3 access from application servers
-  ingress {
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    security_groups = [aws_security_group.app.id]
-  }
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-s3-endpoint-sg"
   }
 }

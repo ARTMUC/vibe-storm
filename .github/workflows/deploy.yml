@@ -1,0 +1,68 @@
+name: Application Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Dockerfile'
+      - 'Makefile'
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Application
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      # Checkout the repository
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Setup Go
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      # Build the Go application
+      - name: Build Application
+        run: |
+          make build
+
+      # Configure AWS credentials using OIDC
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Deploy to EC2 via SSM Run Command
+      - name: Deploy to EC2
+        run: |
+          # Get the instance ID of the running EC2 instance
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=${{ secrets.PROJECT_NAME }}-${{ secrets.ENVIRONMENT }}-app" \
+            --query 'Reservations[*].Instances[*].InstanceId' \
+            --output text)
+          
+          # Send the deployment command to the EC2 instance
+          aws ssm send-command \
+            --instance-ids $INSTANCE_ID \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd /home/ec2-user",
+              "wget https://github.com/${{ github.repository }}/releases/download/latest/app.tar.gz",
+              "tar -xzf app.tar.gz",
+              "chmod +x app",
+              "sudo systemctl restart app.service",
+              "sudo systemctl status app.service"
+            ]' \
+            --output text
